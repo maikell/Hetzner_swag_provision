@@ -1,0 +1,30 @@
+---
+- name: create docker user
+  user:
+    name: "{{ item }}"
+    system: true
+    home: /srv/docker-{{ item }}
+    shell: /bin/bash
+  tags: docker
+  with_items:
+    - swag
+
+- name: copy docker-compose files
+  template:
+    src: "{{ item }}/docker-compose.yml"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0600
+    dest: /srv/docker-{{ item }}/docker-compose.yml
+    backup: true
+  tags: docker
+  with_items:
+    - swag
+
+- name: Docker-compose up swag
+  ansible.builtin.docker_compose:
+    project_src: /srv/docker-swag
+    build: false
+    pull: true
+    recreate: smart
+  tags: docker

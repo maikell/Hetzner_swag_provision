@@ -1,0 +1,24 @@
+---
+version: "2.1"
+services:
+  swag:
+    image: lscr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID={{ swag_uid }}
+      - PGID={{ swag_guid }}
+      - TZ={{ timezone }}
+      - URL={{ fqdn_duckdns }}
+      - VALIDATION=duckdns
+      - SUBDOMAINS=wildcard
+      - STAGING=false
+      - DUCKDNSTOKEN={{ duckdnstoken }}
+    volumes:
+      - /srv/docker-swag/config-swag:/config
+    ports:
+      - 443:443
+      - 80:80
+    restart: unless-stopped
+

@@ -1,0 +1,29 @@
+---
+# https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/
+
+- hosts: 127.0.0.1
+  connection: local
+  vars_files:
+  -  "./vars/main.yml"
+  tasks:
+   - name: Install hetzner pip modules
+     ansible.builtin.pip:
+      name: hcloud
+      state: present
+
+   - include_tasks: provision_hetzner_vm.yml
+     tags: hetzner
+
+- hosts: devserver
+  vars_files:
+  -  "./vars/main.yml"
+  tasks:
+   - include_tasks: install_docker.yml
+     tags: docker
+
+   - include_tasks: swag.yml
+     tags: docker
+
+   - name: All done and ip-address is
+     ansible.builtin.debug:
+      var: hostvars[inventory_hostname]['ansible_default_ipv4']['address']

@@ -1,0 +1,21 @@
+---
+# Get at https://https://www.duckdns.org/
+fqdn_duckdns: 
+duckdnstoken: 
+
+# Get at https://console.hetzner.cloud/
+hetzner_cloud_api_token: 
+
+# Generate a pair of SSH keys or copy&paste ~/.ssh/id_rsa.pub
+ssh_develop_key: 
+ssh_develop_key_name: "develop"
+
+develop_firewall_name: develop
+hetzner_server_name: develop
+hetzner_server_type: cx11
+hetzner_image_type: debian-11
+
+hostname: devserver
+timezone: "Europe/Amsterdam"
+swag_uid: 1000
+swag_guid: 1000

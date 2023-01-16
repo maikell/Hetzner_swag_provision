@@ -1,0 +1,77 @@
+---
+- name: Add ssh key to access the vps
+  hetzner.hcloud.hcloud_ssh_key:
+   api_token: "{{ hetzner_cloud_api_token }}"
+   name: "{{ ssh_develop_key_name }}"
+   public_key: "{{ ssh_develop_key }}"
+   state: present
+
+- name: Create develop firewall
+  hetzner.hcloud.hcloud_firewall:
+    api_token: "{{ hetzner_cloud_api_token }}"
+    name: "{{ develop_firewall_name }}"
+    state: present
+
+- name: Create develop firewall ruleset
+  hetzner.hcloud.hcloud_firewall:
+    api_token: "{{ hetzner_cloud_api_token }}"
+    name: "{{ develop_firewall_name }}"
+    rules:
+     - direction: in
+       protocol: icmp
+       source_ips:
+        - 0.0.0.0/0
+       description: allow icmp in
+     - direction: in
+       protocol: tcp
+       port: 22
+       source_ips:
+         - 0.0.0.0/0
+       description: allow 22
+     - direction: in
+       protocol: tcp
+       port: 80
+       source_ips:
+         - 0.0.0.0/0
+       description: allow 80
+     - direction: in
+       protocol: tcp
+       port: 443
+       source_ips:
+         - 0.0.0.0/0
+       description: allow 443
+    state: present
+
+- name: provision the server
+  hetzner.hcloud.hcloud_server:
+   api_token: "{{ hetzner_cloud_api_token }}"
+   name: "{{ hetzner_server_name }}"
+   server_type: "{{ hetzner_server_type }}"
+   image: "{{ hetzner_image_type }}"
+   enable_ipv6: false
+   firewalls:
+     - "{{ develop_firewall_name }}"
+   ssh_keys:
+     - "{{ ssh_develop_key_name }}"
+   state: present
+  register: details
+
+- name: Print return information from the previous task
+  ansible.builtin.debug:
+   var: details['hcloud_server']['ipv4_address']
+
+- name: Create hostname with ipv4_adress we got back
+  ansible.builtin.add_host:
+   hostname: 'devserver'
+   ansible_ssh_host: "{{details['hcloud_server']['ipv4_address'] }}"
+   ansible_ssh_port: 22
+   ansible_ssh_user: root
+
+- name: Wait for port 22 to become open on the host
+  ansible.builtin.wait_for:
+   port: 22
+   host: "{{ details['hcloud_server']['ipv4_address'] }}"
+
+- name: run ssh-keyscan to add keys to known_hosts
+  shell: ssh-keyscan {{ details['hcloud_server']['ipv4_address'] }} >> ~/.ssh/known_hosts
+  delegate_to: localhost
